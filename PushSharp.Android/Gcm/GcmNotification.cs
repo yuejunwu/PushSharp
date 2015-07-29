@@ -16,7 +16,8 @@ namespace PushSharp.Android
 			var result = new GcmNotification();
 			result.Tag = response.Message.Tag;
 			result.RegistrationIds.Add(response.Message.RegistrationIds[resultIndex]);
-			result.CollapseKey = response.Message.CollapseKey;
+            result.MessageId = response.Results[resultIndex].MessageId;
+            result.CollapseKey = response.Message.CollapseKey;
 			result.JsonData = response.Message.JsonData;
 			result.DelayWhileIdle = response.Message.DelayWhileIdle;
 			return result;
@@ -27,7 +28,8 @@ namespace PushSharp.Android
 			var result = new GcmNotification();
 			result.Tag = msg.Tag;
 			result.RegistrationIds.Add(registrationId);
-			result.CollapseKey = msg.CollapseKey;
+            result.MessageId = msg.MessageId;
+            result.CollapseKey = msg.CollapseKey;
 			result.JsonData = msg.JsonData;
 			result.DelayWhileIdle = msg.DelayWhileIdle;
 			return result;
@@ -36,6 +38,7 @@ namespace PushSharp.Android
 		public GcmNotification()
 		{
 			this.RegistrationIds = new List<string>();
+            this.MessageId = string.Empty;
 			this.CollapseKey = string.Empty;
 			this.JsonData = string.Empty;
 			this.DelayWhileIdle = null;
@@ -50,10 +53,19 @@ namespace PushSharp.Android
 			set;
 		}
 
-		/// <summary>
-		/// Only the latest message with the same collapse key will be delivered
-		/// </summary>
-		public string CollapseKey
+        /// <summary>
+        /// Message ID of the notification
+        /// </summary>
+        public string MessageId
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Only the latest message with the same collapse key will be delivered
+        /// </summary>
+        public string CollapseKey
 		{
 			get;
 			set;
@@ -117,8 +129,12 @@ namespace PushSharp.Android
 				json["time_to_live"] = this.TimeToLive.Value;
 
 			json["registration_ids"] = new JArray(this.RegistrationIds.ToArray());
-				
-			if (this.DelayWhileIdle.HasValue)
+
+            if (!string.IsNullOrWhiteSpace(this.MessageId)) {
+                json["message_id"] = this.MessageId;
+            }
+
+                if (this.DelayWhileIdle.HasValue)
 				json["delay_while_idle"] = this.DelayWhileIdle.Value;
 
 			if (DryRun.HasValue && DryRun.Value)
